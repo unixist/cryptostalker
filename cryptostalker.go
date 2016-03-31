@@ -11,9 +11,11 @@ import (
 )
 
 func isFileRandom(filename string) bool {
-  _, err := os.Stat(filename)
+  s, err := os.Stat(filename)
   if err != nil {
     log.Printf("File no longer exists: %s: %v\n", filename, err)
+    return false
+  } else if !s.Mode().IsRegular() {
     return false
   }
   data, err := ioutil.ReadFile(filename)
