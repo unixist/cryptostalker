@@ -29,11 +29,11 @@ type pathInfo struct {
 func isFileRandom(filename string) bool {
 	s, err := os.Stat(filename)
 	if err != nil {
-	  // File no longer exists. Either it was a temporary file or it was removed.
-	  return false
+		// File no longer exists. Either it was a temporary file or it was removed.
+		return false
 	} else if !s.Mode().IsRegular() {
 		// File is a directory/socket/device, anything other than a regular file.
-	  return false
+		return false
 	}
 	// TODO: process the file in pieces, not as a whole. This will thrash memory
 	// if the file we're inspecting is too big.
@@ -43,7 +43,7 @@ func isFileRandom(filename string) bool {
 		if !os.IsPermission(err) {
 			log.Printf("Error reading file: %s: %v\n", filename, err)
 		}
-	  return false
+		return false
 	}
 	return randumb.IsRandom(data)
 }
@@ -51,7 +51,7 @@ func isFileRandom(filename string) bool {
 func Stalk(opts options) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-	  log.Fatal(err)
+		log.Fatal(err)
 	}
 	defer watcher.Close()
 
@@ -61,9 +61,9 @@ func Stalk(opts options) {
 	}
 
 	go func() {
-	  for {
-	    select {
-	    case event := <-watcher.Events:
+		for {
+			select {
+			case event := <-watcher.Events:
 				cpath := event.Name
 				_, ok := paths.names[cpath]
 				if !ok {
@@ -84,10 +84,10 @@ func Stalk(opts options) {
 					// Whether it's random or not, don't inspect it again
 					delete(paths.names, cpath)
 				}
-	    case err := <-watcher.Errors:
-	      log.Printf("error: %v", err)
-	    }
-	  }
+			case err := <-watcher.Errors:
+				log.Printf("error: %v", err)
+			}
+		}
 	}()
 
 	// Run a cleanup goroutine every 10 seconds.
@@ -111,7 +111,7 @@ func Stalk(opts options) {
 	// forever.
 	err = watcher.Add(*opts.path)
 	if err != nil {
-	  log.Fatal(err)
+		log.Fatal(err)
 	}
 	<-done
 }
