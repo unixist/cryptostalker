@@ -55,8 +55,8 @@ func Stalk(opts options) {
 	}
 	defer watcher.Close()
 
-	done	:= make(chan bool)
-	paths	:= pathInfo{
+	done  := make(chan bool)
+	paths := pathInfo{
 		names: map[string]lib.EventDecider{},
 	}
 
@@ -118,12 +118,12 @@ func Stalk(opts options) {
 
 func flags() options {
 	opts := options {
-		count:	flag.Int("count", 10, "The number of random files required to be seen within <window>"),
-		path:		flag.String("path", "", "The path to watch"),
+		count:  flag.Int("count", 10, "The number of random files required to be seen within <window>"),
+		path:   flag.String("path", "", "The path to watch"),
 		// Since the randomness check is expensive, it may make sense to sleep after
 		// each check on systems that create lots of files.
-		sleep:	flag.Int("sleep", 0, "The time in seconds to sleep between processing each new file. Adjust higher if performance is an issue."),
-		window:	flag.Int("window", 60, "The number of seconds within which <count> random files must be observed"),
+		sleep:  flag.Int("sleep", 0, "The time in seconds to sleep between processing each new file. Adjust higher if performance is an issue."),
+		window: flag.Int("window", 60, "The number of seconds within which <count> random files must be observed"),
 	}
 	flag.Parse()
 	if *opts.path == "" {
