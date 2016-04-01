@@ -69,14 +69,17 @@ func Stalk(opts options) {
 				if !ok {
 					paths.names[cpath] = lib.Decider()
 				}
+				paths.Lock()
 				paths.names[cpath].RecordEvent(event)
 				// Decide whether the operation deems the file worthy of inspection.
 				// The criteria for this vary by OS due to file system notification
 				// differences.
 				if paths.names[cpath].ShouldInspect() {
-					if isFileRandom(event.Name) {
-						log.Printf("Suspicious file: %s", event.Name)
-					}
+					go func() {
+						if isFileRandom(event.Name) {
+							log.Printf("Suspicious file: %s", event.Name)
+						}
+					}()
 					// If required, sleep after we perform the randomness check.
 					if *opts.sleep != 0.0 {
 						time.Sleep(time.Duration(*opts.sleep) * time.Second)
@@ -84,6 +87,7 @@ func Stalk(opts options) {
 					// Whether it's random or not, don't inspect it again
 					delete(paths.names, cpath)
 				}
+				paths.Unlock()
 			case err := <-watcher.Errors:
 				log.Printf("error: %v", err)
 			}
