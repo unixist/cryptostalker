@@ -7,3 +7,15 @@ What we want to catch is not only a new file, but also when the file is closed f
 fsnotify records a CREATE event when a new file is created. The problem is that this event comes even before any writes. So if we begin checking if the file is random when we get the CREATE, the file may not have any data or too little to classify it as random.
 
 So we check for a CREATE followed by a WRITE. It's simple and may need to be refined, but it's good enough for now.
+
+## OSX
+fsnotify produces two types of events when a new file is written to the file system.
+
+1. When a file is created for the first time on the volume
+2. When a file is renamed from an existing file on the same volume
+
+The first case produces events like "CREATE -> WRITE -> WRITE -> WRITE -> CHMOD"
+
+The second case produces simply "CREATE"
+
+So we check both types of even sequences in order to signal that the file should be analyzed for entropy.
