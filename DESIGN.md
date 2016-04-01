@@ -6,7 +6,7 @@ What we want to catch is not only a new file, but also when the file is closed f
 ## Linux
 fsnotify records a CREATE event when a new file is created. The problem is that this event comes even before any writes. So if we begin checking if the file is random when we get the CREATE, the file may not have any data or too little to classify it as random.
 
-So we check for a CREATE followed by a WRITE. It's simple and may need to be refined, but it's good enough for now.
+So we check for a CREATE followed by a WRITE. It's simple and doesn't get us all the way to analyzing the entire file, but it seems good enough for now.
 
 ## OSX
 fsnotify produces two types of events when a new file is written to the file system.
