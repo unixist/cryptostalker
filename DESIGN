@@ -1,0 +1,9 @@
+# Event detection
+The goal for cryptostalker is to detect new files on the file system that appear encrypted. The fsnotify package exposes operating systems file events in differing manners, so each event creation heuristic must be handled.
+
+What we want to catch is not only a new file, but also when the file is closed for writing. So not just the creation of the inode, but when the entire file is written to disk.
+
+## Linux
+fsnotify records a CREATE event when a new file is created. The problem is that this event comes even before any writes. So if we begin checking if the file is random when we get the CREATE, the file may not have any data or too little to classify it as random.
+
+So we check for a CREATE followed by a WRITE. It's simple and may need to be refined, but it's good enough for now.
