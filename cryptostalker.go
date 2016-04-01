@@ -1,16 +1,16 @@
 package main
 
 import (
-  "flag"
-  "io/ioutil"
-  "log"
-  "os"
-  "sync"
-  "time"
+	"flag"
+	"io/ioutil"
+	"log"
+	"os"
+	"sync"
+	"time"
 
-  "github.com/fsnotify/fsnotify"
-  "github.com/unixist/randumb"
-  "github.com/unixist/cryptostalker/lib"
+	"github.com/fsnotify/fsnotify"
+	"github.com/unixist/randumb"
+	"github.com/unixist/cryptostalker/lib"
 )
 
 type options struct {
@@ -27,45 +27,43 @@ type pathInfo struct {
 }
 
 func isFileRandom(filename string) bool {
-  s, err := os.Stat(filename)
-  if err != nil {
-    // File no longer exists. Either it was a temporary file or it was removed.
-    return false
-  } else if !s.Mode().IsRegular() {
+	s, err := os.Stat(filename)
+	if err != nil {
+	  // File no longer exists. Either it was a temporary file or it was removed.
+	  return false
+	} else if !s.Mode().IsRegular() {
 		// File is a directory/socket/device, anything other than a regular file.
-    return false
-  }
+	  return false
+	}
 	// TODO: process the file in pieces, not as a whole. This will thrash memory
 	// if the file we're inspecting is too big.
-  data, err := ioutil.ReadFile(filename)
-  if err != nil {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
 		// Don't output an error if it is permission related
 		if !os.IsPermission(err) {
 			log.Printf("Error reading file: %s: %v\n", filename, err)
-		} else {
-			log.Printf("Not printing permission-related error: %s: %v\n", filename, err)
 		}
-    return false
-  }
-  return randumb.IsRandom(data)
+	  return false
+	}
+	return randumb.IsRandom(data)
 }
 
 func Stalk(opts options) {
-  watcher, err := fsnotify.NewWatcher()
-  if err != nil {
-    log.Fatal(err)
-  }
-  defer watcher.Close()
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+	  log.Fatal(err)
+	}
+	defer watcher.Close()
 
-  done	:= make(chan bool)
+	done	:= make(chan bool)
 	paths	:= pathInfo{
 		names: map[string]lib.EventDecider{},
 	}
 
-  go func() {
-    for {
-      select {
-      case event := <-watcher.Events:
+	go func() {
+	  for {
+	    select {
+	    case event := <-watcher.Events:
 				cpath := event.Name
 				_, ok := paths.names[cpath]
 				if !ok {
@@ -86,11 +84,11 @@ func Stalk(opts options) {
 					// Whether it's random or not, don't inspect it again
 					delete(paths.names, cpath)
 				}
-      case err := <-watcher.Errors:
-        log.Printf("error: %v", err)
-      }
-    }
-  }()
+	    case err := <-watcher.Errors:
+	      log.Printf("error: %v", err)
+	    }
+	  }
+	}()
 
 	// Run a cleanup goroutine every 10 seconds.
 	// This garbage collects paths that were recorded, but never cleaned up.
@@ -111,11 +109,11 @@ func Stalk(opts options) {
 
 	// Now with our goroutines running, begin the watch on our path and wait
 	// forever.
-  err = watcher.Add(*opts.path)
-  if err != nil {
-    log.Fatal(err)
-  }
-  <-done
+	err = watcher.Add(*opts.path)
+	if err != nil {
+	  log.Fatal(err)
+	}
+	<-done
 }
 
 func flags() options {
@@ -135,5 +133,5 @@ func flags() options {
 }
 
 func main() {
-  Stalk(flags())
+	Stalk(flags())
 }
