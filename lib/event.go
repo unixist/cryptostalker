@@ -46,18 +46,18 @@ func (ei *EventInfo) Created() time.Time {
 // a) the path was recently created; or
 // b) the path was recently created, has since received a write, and received
 //    a CHMOD thereafter
-func (led *GenericEventDecider) RecordEvent(event fsnotify.Event) {
-  led.event = event
+func (ged *GenericEventDecider) RecordEvent(event fsnotify.Event) {
+  ged.event = event
   if event.Op&fsnotify.Create == fsnotify.Create {
-    led.created   = true
-    led.createdAt = time.Now()
-    led.SetShouldInspect(true)
-  } else if event.Op&fsnotify.Write == fsnotify.Write && led.created {
+    ged.created   = true
+    ged.createdAt = time.Now()
+    ged.SetShouldInspect(true)
+  } else if event.Op&fsnotify.Write == fsnotify.Write && ged.created {
     // Unset the flag and return that this constitutes a "new file" event
-    led.written   = true
-  } else if event.Op&fsnotify.Chmod == fsnotify.Chmod && led.created &&
-      led.written {
-    led.SetShouldInspect(true)
+    ged.written   = true
+  } else if event.Op&fsnotify.Chmod == fsnotify.Chmod && ged.created &&
+      ged.written {
+    ged.SetShouldInspect(true)
   }
 }
 
