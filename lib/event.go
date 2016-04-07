@@ -19,17 +19,9 @@ type EventDecider interface {
   ShouldInspect() bool
   Created()       time.Time
 }
-type LinuxEventDecider struct {
+type GenericEventDecider struct {
   EventInfo
 }
-type OSXEventDecider struct {
-  EventInfo
-}
-/*
-type WindowsEventDecider struct {
-  EventInfo
-}
-*/
 
 type EventInfo struct {
   event           fsnotify.Event
@@ -51,24 +43,10 @@ func (ei *EventInfo) Created() time.Time {
 }
 
 // RecordEvent will set the path to require inspection if:
-// a) the path was recently created; and
-// b) the path has since received a write
-func (led *LinuxEventDecider) RecordEvent(event fsnotify.Event) {
-  led.event = event
-  if event.Op&fsnotify.Create == fsnotify.Create {
-    led.created   = true
-    led.createdAt = time.Now()
-  } else if event.Op&fsnotify.Write == fsnotify.Write && led.created {
-    // Unset the flag and return that this constitutes a "new file" event
-    led.SetShouldInspect(true)
-  }
-}
-
-// RecordEvent will set the path to require inspection if:
 // a) the path was recently created; or
 // b) the path was recently created, has since received a write, and received
 //    a CHMOD thereafter
-func (led *OSXEventDecider) RecordEvent(event fsnotify.Event) {
+func (led *GenericEventDecider) RecordEvent(event fsnotify.Event) {
   led.event = event
   if event.Op&fsnotify.Create == fsnotify.Create {
     led.created   = true
@@ -83,11 +61,10 @@ func (led *OSXEventDecider) RecordEvent(event fsnotify.Event) {
   }
 }
 
+// Decider returns the appropriate EventDecider struct based upon the OS.
 func Decider() EventDecider {
-  if Linux {
-    return &LinuxEventDecider{}
-  } else if OSX {
-    return &OSXEventDecider{}
+  if Linux || OSX || Windows {
+    return &GenericEventDecider{}
   } else {
     panic("Unsupported operating system!")
   }

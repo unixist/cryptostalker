@@ -76,14 +76,14 @@ func Stalk(opts options) {
 				// differences.
 				if paths.names[cpath].ShouldInspect() {
 					go func() {
+						// If required, sleep after we perform the randomness check.
+						if *opts.sleep != 0.0 {
+							time.Sleep(time.Duration(*opts.sleep) * time.Second)
+						}
 						if isFileRandom(event.Name) {
 							log.Printf("Suspicious file: %s", event.Name)
 						}
 					}()
-					// If required, sleep after we perform the randomness check.
-					if *opts.sleep != 0.0 {
-						time.Sleep(time.Duration(*opts.sleep) * time.Second)
-					}
 					// Whether it's random or not, don't inspect it again
 					delete(paths.names, cpath)
 				}
@@ -126,7 +126,7 @@ func flags() options {
 		path:   flag.String("path", "", "The path to watch"),
 		// Since the randomness check is expensive, it may make sense to sleep after
 		// each check on systems that create lots of files.
-		sleep:  flag.Int("sleep", 0, "The time in seconds to sleep between processing each new file. Adjust higher if performance is an issue."),
+		sleep:  flag.Int("sleep", 0, "The time in seconds to sleep before processing each new file. Adjust higher if performance is an issue."),
 		window: flag.Int("window", 60, "The number of seconds within which <count> random files must be observed"),
 	}
 	flag.Parse()
