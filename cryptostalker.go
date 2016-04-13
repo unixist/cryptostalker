@@ -12,9 +12,9 @@ import (
 )
 
 type options struct {
-	path *string
-	count *int
-	sleep *int
+	path   *string
+	count  *int
+	sleep  *int
 	window *int
 }
 
@@ -45,7 +45,7 @@ func isFileRandom(filename string) bool {
 func Stalk(opts options) {
 	c := make(chan notify.EventInfo, 1)
 	if err := notify.Watch(*opts.path, c, notify.Create); err != nil {
-				log.Fatal(err)
+		log.Fatal(err)
 	}
 	defer notify.Stop(c)
 
@@ -62,12 +62,12 @@ func Stalk(opts options) {
 }
 
 func flags() options {
-	opts := options {
-		count:	flag.Int("count", 10, "The number of random files required to be seen within <window>"),
-		path:	 flag.String("path", "", "The path to watch"),
+	opts := options{
+		count: flag.Int("count", 10, "The number of random files required to be seen within <window>"),
+		path:  flag.String("path", "", "The path to watch"),
 		// Since the randomness check is expensive, it may make sense to sleep after
 		// each check on systems that create lots of files.
-		sleep:	flag.Int("sleep", 1, "The time in seconds to sleep before processing each new file. Adjust higher if performance is an issue."),
+		sleep:  flag.Int("sleep", 1, "The time in seconds to sleep before processing each new file. Adjust higher if performance is an issue."),
 		window: flag.Int("window", 60, "The number of seconds within which <count> random files must be observed"),
 	}
 	flag.Parse()
