@@ -31,7 +31,7 @@ echo -e 'Now you can run:\n  $GOBIN/cryptostalker --path=/tmp'
 # Tested systems
 * Linux
 * OSX
-* Windows (soon)
+* Windows
 
 # Details
 The file notification mechanism is Google's [fsnotify](https://github.com/fsnotify/fsnotify). Since it doesn't use the linux-specific [inotify](https://en.wikipedia.org/wiki/Inotify), cryptostalker currently relies on notifications of new files. So random/encrypted files will only be detected if they belong to new inodes. This means it wont catch the following case: a file is opened, truncated, and only then filled in with encrypted content. Fortunately, this is not how most malware works.
