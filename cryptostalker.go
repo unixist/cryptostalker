@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-  "github.com/rjeczalik/notify"
+	"github.com/rjeczalik/notify"
 	"github.com/unixist/randumb"
 )
 
