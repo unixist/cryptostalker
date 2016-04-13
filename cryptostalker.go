@@ -29,8 +29,8 @@ func isFileRandom(filename string) bool {
 	}
 	// TODO: process the file in pieces, not as a whole. This will thrash memory
 	// if the file we're inspecting is too big. Suggestion: read data in PAGE_SIZE
-  // bytes, and call randumb.IsRandom() size/PAGE_SIZE number of times. If N
-  // pages are random, then return true.
+	// bytes, and call randumb.IsRandom() size/PAGE_SIZE number of times. If N
+	// pages are random, then return true.
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		// Don't output an error if it is permission related
@@ -43,32 +43,31 @@ func isFileRandom(filename string) bool {
 }
 
 func Stalk(opts options) {
-  c := make(chan notify.EventInfo, 1)
-  if err := notify.Watch(*opts.path, c, notify.Create); err != nil {
-        log.Fatal(err)
-  }
-  defer notify.Stop(c)
+	c := make(chan notify.EventInfo, 1)
+	if err := notify.Watch(*opts.path, c, notify.Create); err != nil {
+				log.Fatal(err)
+	}
+	defer notify.Stop(c)
 
-  // Ingest events forever
-  for ei := range c {
-    path := ei.Path()
-    go func() {
-      log.Println("checking randomness:", path)
-      if isFileRandom(path) {
-        log.Printf("Suspicious file: %s", path)
-      }
-    }()
-    time.Sleep(time.Duration(*opts.sleep) * time.Second)
-  }
+	// Ingest events forever
+	for ei := range c {
+		path := ei.Path()
+		go func() {
+			if isFileRandom(path) {
+				log.Printf("Suspicious file: %s", path)
+			}
+		}()
+		time.Sleep(time.Duration(*opts.sleep) * time.Second)
+	}
 }
 
 func flags() options {
 	opts := options {
-		count:  flag.Int("count", 10, "The number of random files required to be seen within <window>"),
-		path:   flag.String("path", "", "The path to watch"),
+		count:	flag.Int("count", 10, "The number of random files required to be seen within <window>"),
+		path:	 flag.String("path", "", "The path to watch"),
 		// Since the randomness check is expensive, it may make sense to sleep after
 		// each check on systems that create lots of files.
-		sleep:  flag.Int("sleep", 1, "The time in seconds to sleep before processing each new file. Adjust higher if performance is an issue."),
+		sleep:	flag.Int("sleep", 1, "The time in seconds to sleep before processing each new file. Adjust higher if performance is an issue."),
 		window: flag.Int("window", 60, "The number of seconds within which <count> random files must be observed"),
 	}
 	flag.Parse()
