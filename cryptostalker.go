@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+  "path/filepath"
 	"time"
 
 	"github.com/rjeczalik/notify"
@@ -44,7 +45,9 @@ func isFileRandom(filename string) bool {
 
 func Stalk(opts options) {
 	c := make(chan notify.EventInfo, 1)
-	if err := notify.Watch(*opts.path, c, notify.Create); err != nil {
+  // Make path recursive
+  rpath := filepath.Join(*opts.path, "...")
+	if err := notify.Watch(rpath, c, notify.Create); err != nil {
 		log.Fatal(err)
 	}
 	defer notify.Stop(c)
