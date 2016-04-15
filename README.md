@@ -26,12 +26,26 @@ echo -e 'Now you can run:\n  $GOBIN/cryptostalker --path=/tmp'
 ```
 
 # Example
-    $./cryptostalker --path=$HOME
+```bash
+# This will print out a line if even one encrypted file is seen anywhere under $HOME
+$ cryptostalker --path=$HOME
+
+# This will kill processes seen starting up 60 seconds before the encrypted file(s) are seen
+$ cryptostalker --path=$HOME --stopAge=60
+
+# For performance reasons, sleep for 100 ms after checking each file for randomness
+$ cryptostalker --path=$HOME --sleep=100
+```
 
 # Tested systems
 * Linux
 * OSX
 * Windows
+
+# Tested samples
+* [jigsaw](https://malwr.com/analysis/MTI0NjVkYzNlMzkyNDdiZGEwZGFhZTkyNDhkMGUxZmI/)
+  * Sample was detected encrypting files and terminated with the --stopAge=60
+* Need more tests...
 
 # Details
 The file notification mechanism is Google's [fsnotify](https://github.com/fsnotify/fsnotify). Since it doesn't use the linux-specific [inotify](https://en.wikipedia.org/wiki/Inotify), cryptostalker currently relies on notifications of new files. So random/encrypted files will only be detected if they belong to new inodes. This means it wont catch the following case: a file is opened, truncated, and only then filled in with encrypted content. Fortunately, this is not how most malware works.
