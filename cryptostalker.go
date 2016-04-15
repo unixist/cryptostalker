@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/rjeczalik/notify"
+	"github.com/unixist/go-ps"
 	"github.com/unixist/randumb"
 )
 
