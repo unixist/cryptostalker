@@ -24,7 +24,7 @@ type options struct {
 
 func stopProcsYoungerThan(secs int) {
 	age, _ := time.ParseDuration(fmt.Sprintf("%ds", secs))
-	for proc := range procsYoungerThan(age) {
+	for _, proc := range procsYoungerThan(age) {
 		if err := stopProc(proc); err != nil {
 			fmt.Printf("Failed to stop process: %d", proc)
 		}
@@ -32,11 +32,14 @@ func stopProcsYoungerThan(secs int) {
 }
 
 func stopProc(pid int) error {
+	if os.Getpid() == pid {
+		return nil
+	}
 	p, err := os.FindProcess(pid)
 	if err != nil {
+		fmt.Printf("ERror Finding process: %d", pid)
 		return err
 	}
-	fmt.Println("Attempting to kill", pid)
 	if err := p.Signal(os.Kill); err != nil {
 		return err
 	}
@@ -48,11 +51,10 @@ func procsYoungerThan(age time.Duration) []int {
 	ret := []int{}
 	for _, i := range procs {
 		if time.Since(i.CreationTime()) < age {
-			fmt.Println("Exe:", i.Executable(), " ctime:", i.CreationTime())
 			ret = append(ret, i.Pid())
 		}
 	}
-	return []int{}
+	return ret
 }
 
 func isFileRandom(filename string) bool {
@@ -99,7 +101,9 @@ func Stalk(opts options) {
 				}
 			}
 		}()
-		time.Sleep(time.Duration(*opts.sleep) * time.Second)
+		if *opts.sleep != 0 {
+			time.Sleep(time.Duration(*opts.sleep) * time.Millisecond)
+		}
 	}
 }
 
@@ -109,7 +113,7 @@ func flags() options {
 		path:  flag.String("path", "", "The path to watch"),
 		// Since the randomness check is expensive, it may make sense to sleep after
 		// each check on systems that create lots of files.
-		sleep:   flag.Int("sleep", 1, "The time in seconds to sleep before processing each new file. Adjust higher if performance is an issue."),
+		sleep:   flag.Int("sleep", 10, "The time in milliseconds to sleep before processing each new file. Adjust higher if performance is an issue."),
 		stopAge: flag.Int("stopAge", 0, "Stop all processes created within the last N seconds. Default is off."),
 		window:  flag.Int("window", 60, "The number of seconds within which <count> random files must be observed"),
 	}
