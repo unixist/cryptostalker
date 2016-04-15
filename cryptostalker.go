@@ -1,15 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/mitchellh/go-ps"
 	"github.com/rjeczalik/notify"
 	"github.com/unixist/randumb"
 )
