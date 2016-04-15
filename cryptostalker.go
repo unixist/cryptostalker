@@ -37,7 +37,6 @@ func stopProc(pid int) error {
 	}
 	p, err := os.FindProcess(pid)
 	if err != nil {
-		fmt.Printf("ERror Finding process: %d", pid)
 		return err
 	}
 	if err := p.Signal(os.Kill); err != nil {
