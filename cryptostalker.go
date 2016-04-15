@@ -1,22 +1,58 @@
 package main
 
 import (
+	"fmt"
 	"flag"
 	"io/ioutil"
 	"log"
 	"os"
-  "path/filepath"
+	"path/filepath"
 	"time"
 
+	"github.com/mitchellh/go-ps"
 	"github.com/rjeczalik/notify"
 	"github.com/unixist/randumb"
 )
 
 type options struct {
-	path   *string
-	count  *int
-	sleep  *int
-	window *int
+	path    *string
+	count   *int
+	sleep   *int
+	stopAge *int
+	window  *int
+}
+
+func stopProcsYoungerThan(secs int) {
+	age, _ := time.ParseDuration(fmt.Sprintf("%ds", secs))
+	for proc := range procsYoungerThan(age) {
+		if err := stopProc(proc); err != nil {
+			fmt.Printf("Failed to stop process: %d", proc)
+		}
+	}
+}
+
+func stopProc(pid int) error {
+	p, err := os.FindProcess(pid)
+	if err != nil {
+		return err
+	}
+	fmt.Println("Attempting to kill", pid)
+	if err := p.Signal(os.Kill); err != nil {
+		return err
+	}
+	return nil
+}
+
+func procsYoungerThan(age time.Duration) []int {
+	procs, _ := ps.Processes()
+	ret := []int{}
+	for _, i := range procs {
+		if time.Since(i.CreationTime()) < age {
+			fmt.Println("Exe:", i.Executable(), " ctime:", i.CreationTime())
+			ret = append(ret, i.Pid())
+		}
+	}
+	return []int{}
 }
 
 func isFileRandom(filename string) bool {
@@ -45,8 +81,8 @@ func isFileRandom(filename string) bool {
 
 func Stalk(opts options) {
 	c := make(chan notify.EventInfo, 1)
-  // Make path recursive
-  rpath := filepath.Join(*opts.path, "...")
+	// Make path recursive
+	rpath := filepath.Join(*opts.path, "...")
 	if err := notify.Watch(rpath, c, notify.Create); err != nil {
 		log.Fatal(err)
 	}
@@ -58,6 +94,9 @@ func Stalk(opts options) {
 		go func() {
 			if isFileRandom(path) {
 				log.Printf("Suspicious file: %s", path)
+				if *opts.stopAge != 0 {
+					stopProcsYoungerThan(*opts.stopAge)
+				}
 			}
 		}()
 		time.Sleep(time.Duration(*opts.sleep) * time.Second)
@@ -70,8 +109,9 @@ func flags() options {
 		path:  flag.String("path", "", "The path to watch"),
 		// Since the randomness check is expensive, it may make sense to sleep after
 		// each check on systems that create lots of files.
-		sleep:  flag.Int("sleep", 1, "The time in seconds to sleep before processing each new file. Adjust higher if performance is an issue."),
-		window: flag.Int("window", 60, "The number of seconds within which <count> random files must be observed"),
+		sleep:   flag.Int("sleep", 1, "The time in seconds to sleep before processing each new file. Adjust higher if performance is an issue."),
+		stopAge: flag.Int("stopAge", 0, "Stop all processes created within the last N seconds. Default is off."),
+		window:  flag.Int("window", 60, "The number of seconds within which <count> random files must be observed"),
 	}
 	flag.Parse()
 	if *opts.path == "" {
