@@ -6,7 +6,7 @@ This project is a port of the original [randumb](github.com/unixist/randumb) pro
 # How it works
 When cryptostalker runs, it places a recursive file system watch on the path specified with the ```--path``` command line flag.
 
-Whenever a new file is created, it is inspected for randomness via the [randumb](github.com/unixist/randumb) library. If it is random, and within the ```window``` and ```count``` parameters, a message will be output saying that a suspicious file is found. This is possibly indicative of a newly-placed encrypted file somewhere on the filesystem under the ```--path``` directory.
+Whenever a new file is created, it is inspected for randomness via the [randumb](github.com/unixist/randumb) library. If it is deemed random, and within the ```--window``` and ```--count``` parameters, a message will be output saying that a suspicious file is found. This is possibly indicative of a newly-placed encrypted file somewhere on the filesystem under the ```--path``` directory.
 
 If the ```--stopAge``` command line flag is specified, any new process created within ```stopAge``` seconds of an encrypted file being detected will be terminated. The idea is to stop processes that might be responsible for performing the file encryption. This is a powerful, yet dangerous feature.
 
