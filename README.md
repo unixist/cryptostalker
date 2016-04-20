@@ -1,8 +1,16 @@
 # Summary
-
 The goal of cryptostalker is to detect crypto ransomware. The mechanism it uses to do this is by recognizing new files that are created on the file system and trying to ascertain whether they are encrypted.
 
 This project is a port of the original [randumb](github.com/unixist/randumb) project that was written in python for linux using inotify.
+
+# How it works
+When cryptostalker runs, it places a recursive file system watch on the path specified with the ```--path``` command line flag.
+
+Whenever a new file is created, it is inspected for randomness via the [randumb](github.com/unixist/randumb) library. If it is random, and within the ```window``` and ```count``` parameters, a message will be output saying that a suspicious file is found. This is possibly indicative of a newly-placed encrypted file somewhere on the filesystem under the ```--path``` directory.
+
+If the ```--stopAge``` command line flag is specified, any new process created within ```stopAge``` seconds of an encrypted file being detected will be terminated. The idea is to stop processes that might be responsible for performing the file encryption. This is a powerful, yet dangerous feature.
+
+Ideally, suspicious processes will be issued an interrupt, so they'd just be paused, while the user or system log is notified and you can recover any legitimate processes. Due to a limitation in golang for Windows, an interrupt can't be sent to processes; only a kill may be sent. When ```stopAge``` is implemented for other operating systems, it will be implemented with the interrupt functionality, not kill.
 
 # Setup
 These steps will set up a temporary workspace and install cryptostalker to it
