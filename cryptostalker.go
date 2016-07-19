@@ -69,6 +69,9 @@ func isFileRandom(filename string) bool {
 	// if the file we're inspecting is too big. Suggestion: read data in PAGE_SIZE
 	// bytes, and call randumb.IsRandom() size/PAGE_SIZE number of times. If N
 	// pages are random, then return true.
+	// Processing a file in this way also has the side effect of protecting against
+	// ransomware evading detection by encoding non-random data inside the file along
+	// with the encrypted data--and then removing the non-random cruft data later.
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		// Don't output an error if it is permission related
