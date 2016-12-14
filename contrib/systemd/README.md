@@ -4,7 +4,7 @@ This unit template allows dynamic instances of cryptostalker watching different 
 
 ## Installation
 
-Just copy to ```/lib/systemd/system/```
+Just copy to ```/lib/systemd/system/``` and adjust the paths or copy the binary into ```/usr/local/bin/```.
 
 ## Usage
 
