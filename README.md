@@ -55,6 +55,30 @@ $ cryptostalker --path=$HOME --sleep=100
   * Sample was detected encrypting files and terminated with the --stopAge=60
 * Need more tests...
 
+# Test your setup
+
+## Example: GPG
+
+### Prerequisites
+
+* use your existing GPG key or create a new one
+* cryptostalker watches a directory (e.g. ```/tmp```)
+
+
+```bash
+$ for i in {1..200}; do dmesg > /tmp/$i.txt; done # fill data into some files
+$ for i in {1..200}; do gpg --out /tmp/$i.crypt --recipient $gpg-key-id --encrypt /tmp/$i.txt; done
+```
+
+This should result in something like:
+
+```
+YYYY/MM/DD HH:MM:SS Suspicious file: /tmp/test/70.crypt
+YYYY/MM/DD HH:MM:SS Suspicious file: /tmp/test/131.crypt
+YYYY/MM/DD HH:MM:SS Suspicious file: /tmp/test/165.crypt
+...
+```
+
 # Details
 The file notification mechanism is Google's [fsnotify](https://github.com/fsnotify/fsnotify). Since it doesn't use the linux-specific [inotify](https://en.wikipedia.org/wiki/Inotify), cryptostalker currently relies on notifications of new files. So random/encrypted files will only be detected if they belong to new inodes. This means it wont catch the following case: a file is opened, truncated, and only then filled in with encrypted content. Fortunately, this is not how most malware works.
 
