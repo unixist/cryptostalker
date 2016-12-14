@@ -43,6 +43,9 @@ $ cryptostalker --path=$HOME --stopAge=60
 
 # For performance reasons, sleep for 100 ms after checking each file for randomness
 $ cryptostalker --path=$HOME --sleep=100
+
+# This will call a script (see contrib/scripts directory) when an encrypted file is seen anywhere under $HOME
+$ cryptostalker --path=$HOME --script=/usr/local/bin/alert.sh
 ```
 
 # Tested systems
