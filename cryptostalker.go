@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -20,6 +21,7 @@ type options struct {
 	sleep   *int
 	stopAge *int
 	window  *int
+	script	*string
 }
 
 func stopProcsYoungerThan(secs int) {
@@ -101,6 +103,9 @@ func Stalk(opts options) {
 				if *opts.stopAge != 0 {
 					stopProcsYoungerThan(*opts.stopAge)
 				}
+				if *opts.script != "" {
+					exec.Command(*opts.script,path).Start()
+				}
 			}
 		}()
 		if *opts.sleep != 0 {
@@ -113,6 +118,7 @@ func flags() options {
 	opts := options{
 		count: flag.Int("count", 10, "The number of random files required to be seen within <window>"),
 		path:  flag.String("path", "", "The path to watch"),
+		script:  flag.String("script", "", "Script to call (first parameter is the path of suspicious file) when something happens"),
 		// Since the randomness check is expensive, it may make sense to sleep after
 		// each check on systems that create lots of files.
 		sleep:   flag.Int("sleep", 10, "The time in milliseconds to sleep before processing each new file. Adjust higher if performance is an issue."),
