@@ -1,0 +1,10 @@
+[Unit]
+Description=cryptostalker - detect crypto ransomware on %I
+
+[Service]
+ExecStart=-/usr/local/bin/cryptostalker --script=/usr/local/bin/cryptostalker.sh --path=%I
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
