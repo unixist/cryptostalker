@@ -16,12 +16,13 @@ import (
 )
 
 type options struct {
-	path    *string
-	count   *int
-	sleep   *int
-	stopAge *int
-	window  *int
-	script	*string
+	count		*int
+	fastDetectPct	*int
+	path		*string
+	script		*string
+	sleep		*int
+	stopAge		*int
+	window		*int
 }
 
 func stopProcsYoungerThan(secs int) {
@@ -58,7 +59,7 @@ func procsYoungerThan(age time.Duration) []int {
 	return ret
 }
 
-func isFileRandom(filename string) bool {
+func isFileRandom(filename string, fastDetectPct int) bool {
 	s, err := os.Stat(filename)
 	if err != nil {
 		// File no longer exists. Either it was a temporary file or it was removed.
@@ -82,7 +83,38 @@ func isFileRandom(filename string) bool {
 		}
 		return false
 	}
-	return randumb.IsRandom(data)
+	var t time.Time
+	if fastDetectPct != 0 {
+		chunkLen := 4096
+		dataLen := len(data)
+		chunksTotal := dataLen / chunkLen
+		chunksEnc := 0
+		if dataLen % chunkLen != 0 {
+			chunksTotal++
+		}
+		t = time.Now()
+		for c := 0; c < chunksTotal; c++ {
+			end := c * chunkLen + chunkLen
+			if end > dataLen {
+				end = dataLen
+			}
+			if randumb.IsRandom(data[c*chunkLen:end]) {
+				chunksEnc++
+			}
+			if chunksEnc >= chunksTotal/(100/fastDetectPct) {
+				log.Println("Found suspicious file with Fast Detect")
+				fmt.Println("optimized time:", time.Since(t))
+				break
+				//return true
+			}
+		}
+		fmt.Println("optimized time:", time.Since(t))
+	}
+
+	t = time.Now()
+	r := randumb.IsRandom(data)
+	fmt.Println("unoptimized time:", time.Since(t))
+	return r
 }
 
 func Stalk(opts options) {
@@ -98,7 +130,7 @@ func Stalk(opts options) {
 	for ei := range c {
 		path := ei.Path()
 		go func() {
-			if isFileRandom(path) {
+			if isFileRandom(path, *opts.fastDetectPct) {
 				log.Printf("Suspicious file: %s", path)
 				if *opts.stopAge != 0 {
 					stopProcsYoungerThan(*opts.stopAge)
@@ -117,6 +149,7 @@ func Stalk(opts options) {
 func flags() options {
 	opts := options{
 		count: flag.Int("count", 10, "The number of random files required to be seen within <window>"),
+		fastDetectPct:  flag.Int("fast_detect_pct", 0, "Optimize the file analysis phase. Skip the full-file check and flag the file as random if only the first X percent of the file is random. If this check is negative, a full-file analysis will be performed in addition."),
 		path:  flag.String("path", "", "The path to watch"),
 		script:  flag.String("script", "", "Script to call (first parameter is the path of suspicious file) when something happens"),
 		// Since the randomness check is expensive, it may make sense to sleep after
