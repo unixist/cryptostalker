@@ -30,22 +30,25 @@ mkdir -p $path/src
 cd $path/src
 go get github.com/unixist/cryptostalker
 go install github.com/unixist/cryptostalker
-echo -e 'Now you can run:\n  $GOBIN/cryptostalker --path=/tmp'
+echo -e 'Now you can run:\n  $GOBIN/cryptostalker /tmp'
 ```
 
 # Example
 ```bash
 # This will print out a line if even one encrypted file is seen anywhere under $HOME
-$ cryptostalker --path=$HOME
+$ cryptostalker $HOME
 
 # This will kill processes seen starting up 60 seconds before the encrypted file(s) are seen
-$ cryptostalker --path=$HOME --stopAge=60
+$ cryptostalker $HOME --stopAge=60
 
 # For performance reasons, sleep for 100 ms after checking each file for randomness
-$ cryptostalker --path=$HOME --sleep=100
+$ cryptostalker $HOME --sleep=100
 
 # This will call a script (see contrib/scripts directory) when an encrypted file is seen anywhere under $HOME
-$ cryptostalker --path=$HOME --script=/usr/local/bin/alert.sh
+$ cryptostalker $HOME --script=/usr/local/bin/alert.sh
+
+# This will monitor multiple folders
+$ cryptostalker /tmp $HOME
 ```
 
 # Tested systems

@@ -16,7 +16,7 @@ import (
 )
 
 type options struct {
-	path    *string
+	pathList	[]string
 	count   *int
 	sleep   *int
 	stopAge *int
@@ -87,10 +87,17 @@ func isFileRandom(filename string) bool {
 
 func Stalk(opts options) {
 	c := make(chan notify.EventInfo, 1)
-	// Make path recursive
-	rpath := filepath.Join(*opts.path, "...")
-	if err := notify.Watch(rpath, c, notify.Create); err != nil {
-		log.Fatal(err)
+	// Cycle each path to watch
+	for _, path := range opts.pathList {
+		log.Printf("Watching path: %s", path)
+		
+		// Make path recursive
+		rpath := filepath.Join(path, "...")
+		
+		// Start watching path
+		if err := notify.Watch(rpath, c, notify.Create); err != nil {
+			log.Fatal(err)
+		}
 	}
 	defer notify.Stop(c)
 
@@ -114,10 +121,15 @@ func Stalk(opts options) {
 	}
 }
 
+func usage() {
+	fmt.Printf("Usage: %s [OPTIONS] path_1 [path_2] [path_N]\n", os.Args[0])
+	flag.PrintDefaults()
+}
+
 func flags() options {
+	// Command line switches
 	opts := options{
 		count: flag.Int("count", 10, "The number of random files required to be seen within <window>"),
-		path:  flag.String("path", "", "The path to watch"),
 		script:  flag.String("script", "", "Script to call (first parameter is the path of suspicious file) when something happens"),
 		// Since the randomness check is expensive, it may make sense to sleep after
 		// each check on systems that create lots of files.
@@ -125,9 +137,19 @@ func flags() options {
 		stopAge: flag.Int("stopAge", 0, "Stop all processes created within the last N seconds. Default is off."),
 		window:  flag.Int("window", 60, "The number of seconds within which <count> random files must be observed"),
 	}
+	
+	// Usage
+	flag.Usage = usage 
 	flag.Parse()
-	if *opts.path == "" {
-		log.Fatal("Please provide a --path")
+	if len(os.Args) <= 1 {
+		usage()
+		log.Fatal("ERROR: missing one or more paths to watch as arguments")
+	}
+	
+	// Build a list of paths to watch
+	opts.pathList = []string{}
+	for i:=1; i<len(os.Args);i++ {
+		opts.pathList = append(opts.pathList, os.Args[i])
 	}
 	return opts
 }
